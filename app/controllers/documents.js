@@ -56,8 +56,9 @@ const getRequestHandler = async (user) => {
 
   if (!user) return
 
-  let perms = await services.db.permissions.getPermissionsbyUserId(user)
-  console.log('perms', perms)
+  let perms = await services.db.permissions.getPermissionsbyUserId(user);
+
+  return perms;
 }
 
 /*
@@ -101,14 +102,14 @@ const postRequestHandler = async (user, files) => {
   let documentHash = services.blockchain.getDocHash(file.path)
   fs.unlink(file.path) // Fire and forget
 
-  let documentEntity = await services.db.documents.create()
+  let documentEntity = await services.db.documents.create(file.originalname)
   let docRev = await services.db.documentRevisions.create(documentEntity, blobUri, documentHash)
   let updateDocument = await services.db.documents.setLatest(documentEntity, docRev)
   await services.db.permissions.create(user, documentEntity, 'OWNER')
 
   winston.info('Document revision was created')
   console.log(updateDocument)
-  return updateDocument
+  return [{ 'document': updateDocument, 'access': 'OWNER' }];
 }
 
 /*
